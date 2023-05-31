@@ -1,43 +1,46 @@
-import 'package:brasileirao/models/time.dart';
 import 'package:brasileirao/models/titulo.dart';
 import 'package:brasileirao/repository/times_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:provider/provider.dart';
 
-class AddTituloPage extends StatefulWidget {
-  Time time;
+class EditTituloPage extends StatefulWidget {
+  final Titulo titulo;
 
-  AddTituloPage({
-    required this.time,
-  }) : super();
+  const EditTituloPage({Key? key, required this.titulo}) : super(key: key);
 
   @override
-  State<AddTituloPage> createState() => _AddTituloPageState();
+  State<EditTituloPage> createState() => _EditTituloPageState();
 }
 
-class _AddTituloPageState extends State<AddTituloPage> {
+class _EditTituloPageState extends State<EditTituloPage> {
   final _campeonato = TextEditingController();
   final _ano = TextEditingController();
   final _formKey = GlobalKey<FormState>();
 
-  save() {
-    Provider.of<TimesRepository>(context, listen: false).addTitulo(
-      time: widget.time,
-      titulo: Titulo(
-        ano: _ano.text,
-        campeonato: _campeonato.text,
-      ),
+  @override
+  void initState() {
+    super.initState();
+    _ano.text = widget.titulo.ano;
+    _campeonato.text = widget.titulo.campeonato;
+  }
+
+  editar() {
+    Provider.of<TimesRepository>(context, listen: false).editTitulo(
+      titulo: widget.titulo,
+      ano: _ano.text,
+      campeonato: _campeonato.text,
     );
     Get.back();
-    Get.rawSnackbar(title: 'Sucesso', message: 'Título cadastrado!');
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Adicionar'),
+        title: const Text('Editar titulo'),
+        backgroundColor: Colors.grey[800],
+        actions: [IconButton(onPressed: editar, icon: const Icon(Icons.check))],
       ),
       body: Form(
         key: _formKey,
@@ -81,7 +84,7 @@ class _AddTituloPageState extends State<AddTituloPage> {
               child: ElevatedButton(
                   onPressed: () {
                     if (_formKey.currentState?.validate() != null) {
-                      save();
+                      editar();
                     }
                   },
                   child: Row(
