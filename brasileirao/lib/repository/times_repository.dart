@@ -1,5 +1,6 @@
 import 'dart:collection';
 
+import 'package:brasileirao/database/db.dart';
 import 'package:brasileirao/models/time.dart';
 import 'package:brasileirao/models/titulo.dart';
 import 'package:flutter/material.dart';
@@ -9,22 +10,73 @@ class TimesRepository extends ChangeNotifier {
 
   UnmodifiableListView<Time> get times => UnmodifiableListView(_times);
 
-  void addTitulo({required Time time, required Titulo titulo}) {
+  TimesRepository() {
+    initRepository();
+  }
+
+  initRepository() async {
+    var db = await DB.get();
+
+    List ts = await db.query('times', orderBy: 'pontos DESC');
+    //Equivalente a db.rawQuery('SELECT * FROM times');
+
+    for (var t in ts) {
+      var time = Time(
+        id: t['id'],
+        nome: t['nome'],
+        brasao: t['brasao'],
+        pontos: t['pontos'],
+        // idAPI: t['idAPI'],
+        cor: Color(int.parse(t['cor'])),
+        titulos: await getTitulos(t['id'])
+      );
+      _times.add(time);
+    }
+    // updateTabela();
+    notifyListeners();
+  }
+
+  void addTitulo({required Time time, required Titulo titulo}) async {
+    var db = await DB.get();
+    var id = await db.insert('titulos', {
+      'campeonato': titulo.campeonato,
+      'ano': titulo.ano,
+      'time_id': titulo.id,
+    });
+    titulo.id = id;
     time.titulos.add(titulo);
     notifyListeners();
   }
 
-  void editTitulo(
-      {required Titulo titulo,
-      required String ano,
-      required String campeonato}) {
+  Future<void> editTitulo({
+    required Titulo titulo,
+    required String ano,
+    required String campeonato,
+  }) async {
+    var db = await DB.get();
+    db.update('titulos', {'campeonato': titulo.campeonato, 'ano': titulo.ano},
+        where: 'id = ?', whereArgs: [titulo.id]);
     titulo.campeonato = campeonato;
     titulo.ano = ano;
     notifyListeners();
   }
 
-  TimesRepository() {
-    _times.addAll([
+  getTitulos(timeId) async {
+    var db = await DB.get();
+    var results =
+        await db.query('titulos', where: 'time_id = ?', whereArgs: [timeId]);
+    List<Titulo> titulos = [];
+    for (var titulo in results) {
+      titulos.add(Titulo(
+        id: titulo['id'] as int?,
+        campeonato: titulo['campeonato'].toString(),
+        ano: titulo['ano'].toString(),
+      ));
+    }
+  }
+
+  static setupTimes() {
+    return [
       Time(
         nome: 'Flamengo',
         pontos: 0,
@@ -151,6 +203,6 @@ class TimesRepository extends ChangeNotifier {
         brasao: 'https://logodetimes.com/times/botafogo/logo-botafogo-256.png',
         cor: Colors.grey[800],
       ),
-    ]);
+    ];
   }
 }
