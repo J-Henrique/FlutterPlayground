@@ -1,5 +1,15 @@
-import 'package:server/server.dart' as server;
+import 'dart:io';
 
-void main(List<String> arguments) {
-  print('Hello world: ${server.calculate()}!');
+import 'package:protos/protos.dart';
+import 'package:server/todo_service.dart';
+
+void main(List<String> arguments) async {
+  final server = Server([
+    TodoService(),
+  ]);
+  final port = int.parse(Platform.environment['PORT'] ?? '8080');
+  await server.serve(
+      port: port
+  );
+  print('Server listening on port ${server.port}');
 }
