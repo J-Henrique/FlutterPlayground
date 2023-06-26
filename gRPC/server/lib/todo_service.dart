@@ -16,8 +16,9 @@ class TodoService extends TodoServiceBase {
     while (true) {
       final id = Random().nextInt(100);
       final todo = Todo(id: id, title: 'title $id', completed: false);
+      print("Emitting: ${todo.id}");
       yield todo;
-      await Future.delayed(Duration(seconds: 1));
+      await Future.delayed(Duration(milliseconds: 500));
     }
   }
 }
