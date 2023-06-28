@@ -13,12 +13,12 @@ class TodoService extends TodoServiceBase {
   @override
   Stream<Todo> getTodoStream(
       ServiceCall call, GetTodoByIdRequest request) async* {
-    while (true) {
-      final id = Random().nextInt(100);
+    for(int i = 1; i <= 2000; i++ ) {
+      final id = i;
       final todo = Todo(id: id, title: 'title $id', completed: false);
       print("Emitting: ${todo.id}");
       yield todo;
-      await Future.delayed(Duration(milliseconds: 500));
+      await Future.delayed(Duration(milliseconds: Random().nextInt(10)));
     }
   }
 }
